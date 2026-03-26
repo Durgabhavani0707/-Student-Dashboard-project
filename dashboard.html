@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Dashboard</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    font-family:'Segoe UI';
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white;
+}
+
+/* TOPBAR */
+.topbar {
+    height:60px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 25px;
+    backdrop-filter:blur(10px);
+    background:rgba(255,255,255,0.1);
+}
+
+/* MAIN */
+.main {
+    padding:30px;
+}
+
+/* GRID */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:25px;
+}
+
+/* CARD */
+.card {
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(15px);
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    transition:0.4s;
+    cursor:pointer;
+    transform:translateY(20px);
+    opacity:0;
+}
+
+/* ANIMATION ENTRY */
+.card.show {
+    transform:translateY(0);
+    opacity:1;
+}
+
+/* HOVER */
+.card:hover {
+    transform:translateY(-10px) scale(1.03);
+    box-shadow:0 20px 40px rgba(0,0,0,0.3);
+}
+
+/* TITLE */
+.title {
+    font-size:20px;
+    margin-bottom:10px;
+}
+
+/* ICON */
+.icon {
+    font-size:30px;
+    margin-bottom:10px;
+}
+
+/* COLORS */
+.total {color:#90caf9;}
+.completed {color:#69f0ae;}
+.remaining {color:#ff8a80;}
+
+/* BAR */
+.bar {
+    width:100%;
+    height:10px;
+    background:rgba(255,255,255,0.2);
+    border-radius:10px;
+    margin-top:10px;
+    overflow:hidden;
+}
+
+/* PROGRESS */
+.fill {
+    height:100%;
+    width:0;
+    border-radius:10px;
+    background:linear-gradient(90deg,#00e676,#00c853);
+    transition:width 1s ease-in-out;
+}
+
+/* PERCENT */
+.percent {
+    margin-top:8px;
+    font-size:14px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>🎓 Student Dashboard</h3>
+    <div id="reg"></div>
+</div>
+
+<div class="main">
+    <div id="summary" class="grid"></div>
+</div>
+
+<script>
+
+const icons = {
+    "AUC":"fa-book",
+    "HAS":"fa-language",
+    "SIL":"fa-flask",
+    "BSC":"fa-microscope",
+    "ESC":"fa-cogs",
+    "PCC":"fa-laptop-code",
+    "HFC":"fa-chart-line",
+    "SDC":"fa-code",
+    "PRI":"fa-user-graduate",
+    "OEC":"fa-globe",
+    "VAC":"fa-star"
+};
+
+const params = new URLSearchParams(window.location.search);
+const regno = params.get("regno");
+
+document.getElementById("reg").innerText = "ID: " + regno;
+
+fetch(`http://127.0.0.1:5000/dashboard/${regno}`)
+.then(res => res.json())
+.then(data => {
+
+    let container = document.getElementById("summary");
+    container.innerHTML = "";
+
+    data.forEach((c,index) => {
+
+        let percent = Math.round((c.completed / c.total) * 100);
+
+        let card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="icon"><i class="fa ${icons[c.category] || 'fa-folder'}"></i></div>
+            <div class="title">${c.category}</div>
+
+            <div class="total"><i class="fa fa-list"></i> Total: ${c.total}</div>
+            <div class="completed"><i class="fa fa-check-circle"></i> Completed: ${c.completed}</div>
+            <div class="remaining"><i class="fa fa-times-circle"></i> Remaining: ${c.remaining}</div>
+
+            <div class="percent">Progress: ${percent}%</div>
+
+            <div class="bar">
+                <div class="fill" id="bar${index}"></div>
+            </div>
+        `;
+
+        container.appendChild(card);
+
+        // ENTRY ANIMATION
+        setTimeout(() => {
+            card.classList.add("show");
+        }, index * 100);
+
+        // BAR ANIMATION
+        setTimeout(() => {
+            document.getElementById(`bar${index}`).style.width = percent + "%";
+        }, 400);
+    });
+
+});
+</script>
+
+</body>
+</html>

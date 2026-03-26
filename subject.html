@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Subjects</title>
+
+<style>
+body {
+    margin:0;
+    font-family:'Segoe UI';
+    background:#f4f6f9;
+}
+
+.topbar {
+    padding:15px;
+    background:#3949ab;
+    color:white;
+}
+
+.container {
+    padding:30px;
+}
+
+.card {
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:15px;
+    box-shadow:0px 5px 15px rgba(0,0,0,0.1);
+    display:flex;
+    justify-content:space-between;
+}
+
+.status {
+    padding:5px 10px;
+    border-radius:8px;
+}
+
+.completed {
+    background:#c8e6c9;
+}
+
+.pending {
+    background:#ffcdd2;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3 id="title"></h3>
+</div>
+
+<div class="container" id="list"></div>
+
+<script>
+
+// GET DATA FROM URL
+const params = new URLSearchParams(window.location.search);
+const regno = params.get("regno");
+const category = params.get("category");
+
+// TITLE
+document.getElementById("title").innerText = category + " Subjects";
+
+// FETCH SUBJECTS
+fetch(`http://127.0.0.1:5000/subjects/${regno}/${category}`)
+.then(res => res.json())
+.then(data => {
+
+    let container = document.getElementById("list");
+    container.innerHTML = "";
+
+    data.forEach(s => {
+
+        let cls = s.status === "completed" ? "completed" : "pending";
+
+        container.innerHTML += `
+            <div class="card">
+                <div>${s.subject_name}</div>
+                <div class="status ${cls}">${s.status}</div>
+            </div>
+        `;
+    });
+
+});
+
+</script>
+
+</body>
+</html>
