@@ -26,7 +26,7 @@ def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="A*durgabhavani07",  # your password
+        password="A*durgabhavani07",
         database="studentdb"
     )
 
@@ -40,32 +40,34 @@ def dashboard(regno):
     cursor.execute("SELECT * FROM subjects WHERE regno=%s", (regno,))
     rows = cursor.fetchall()
 
-    # ❌ NO DATA CASE
-    if len(rows) == 0:
-        return jsonify({
-            "message": "No data found for this student"
-        })
+    # 🔥 DEFAULT ALL CATEGORIES (IMPORTANT FIX)
+    categories = {
+        "AUC":0,
+        "HAS":0,
+        "SIL":0,
+        "BSC":0,
+        "ESC":0,
+        "PCC":0,
+        "PEC":0,
+        "HFC":0,
+        "SDC":0,
+        "PRI":0,
+        "OEC":0,
+        "VAC":0
+    }
 
-    categories = {}
-
-    # 🔥 COUNT ONLY COMPLETED
+    # 🔥 COUNT COMPLETED FROM DB
     for r in rows:
-        cat = r['category']
-
-        if cat not in categories:
-            categories[cat] = {
-                "completed": 0
-            }
-
         if r['status'] == "completed":
-            categories[cat]["completed"] += 1
+            cat = r['category']
+            if cat in categories:
+                categories[cat] += 1
 
     result = []
 
-    # 🔥 APPLY FIXED TOTALS
-    for cat, val in categories.items():
+    # 🔥 ALWAYS RETURN ALL CATEGORIES
+    for cat, completed in categories.items():
         total = CATEGORY_TOTALS.get(cat, 0)
-        completed = val["completed"]
         remaining = total - completed
         progress = int((completed / total) * 100) if total > 0 else 0
 
