@@ -34,55 +34,62 @@ def get_db_connection():
 @app.route('/dashboard/<regno>')
 def dashboard(regno):
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM subjects WHERE regno=%s", (regno,))
-    rows = cursor.fetchall()
+        cursor.execute("SELECT * FROM subjects WHERE regno=%s", (regno,))
+        rows = cursor.fetchall()
 
-    # 🔥 DEFAULT ALL CATEGORIES (IMPORTANT FIX)
-    categories = {
-        "AUC":0,
-        "HAS":0,
-        "SIL":0,
-        "BSC":0,
-        "ESC":0,
-        "PCC":0,
-        "PEC":0,
-        "HFC":0,
-        "SDC":0,
-        "PRI":0,
-        "OEC":0,
-        "VAC":0
-    }
+        # 🔥 ALL CATEGORIES DEFAULT
+        categories = {
+            "AUC":0,
+            "HAS":0,
+            "SIL":0,
+            "BSC":0,
+            "ESC":0,
+            "PCC":0,
+            "PEC":0,
+            "HFC":0,
+            "SDC":0,
+            "PRI":0,
+            "OEC":0,
+            "VAC":0
+        }
 
-    # 🔥 COUNT COMPLETED FROM DB
-    for r in rows:
-        if r['status'] == "completed":
-            cat = r['category']
-            if cat in categories:
-                categories[cat] += 1
+        # 🔥 COUNT COMPLETED
+        for r in rows:
+            if r['status'] == "completed":
+                cat = str(r['category']).upper()   # ✅ FIXED
+                if cat in categories:
+                    categories[cat] += 1
 
-    result = []
+        result = []
 
-    # 🔥 ALWAYS RETURN ALL CATEGORIES
-    for cat, completed in categories.items():
-        total = CATEGORY_TOTALS.get(cat, 0)
-        remaining = total - completed
-        progress = int((completed / total) * 100) if total > 0 else 0
+        # 🔥 BUILD FINAL RESPONSE
+        for cat, completed in categories.items():
+            total = CATEGORY_TOTALS.get(cat, 0)
+            remaining = total - completed
+            progress = int((completed / total) * 100) if total > 0 else 0
 
-        result.append({
-            "category": cat,
-            "total": total,
-            "completed": completed,
-            "remaining": remaining,
-            "progress": progress
+            result.append({
+                "category": cat,
+                "total": total,
+                "completed": completed,
+                "remaining": remaining,
+                "progress": progress
+            })
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(result)
+
+    except Exception as e:
+        # 🔥 SHOW ERROR (for debugging)
+        return jsonify({
+            "error": str(e)
         })
-
-    cursor.close()
-    conn.close()
-
-    return jsonify(result)
 
 # ✅ RUN SERVER
 if __name__ == '__main__':
