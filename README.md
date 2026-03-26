@@ -128,7 +128,7 @@ Table: `subjects`
 A DURGA BHAVANI
 
 
-LIVE DEMO : https://studentdashboard-project1.vercel.app/
+LIVE DEMO : https://studentdashboard-project.vercel.app/
 
 ⭐ Note
 
